@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lal-lo National High School SIMS</title>
+  <title>SIMS</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       background-color: #ffffff;
       font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
     }
     .header {
       background-color: #1b5e20;
@@ -51,11 +52,11 @@
 
   <div class="container">
     <form action="" method="post">
-      <img src="lnhslogo.png" alt="LNHS Logo" class="school-logo"><br>
-      <button type="submit" name="admin-button" value="admin-button" class="login-button">Administrator</button><br>
-      <button type="submit" name="tea-button" value="tea-button" class="login-button">Teacher</button><br>
-      <button type="submit" name="stud-button" value="stud-button" class="login-button">Student</button><br>
-      <button type="submit" name="par-button" value="par-button" class="login-button">Parent</button>
+      <img src="lnhs.png" alt="LNHS Logo" class="school-logo"><br>
+      <button type="submit" name="admin-button" value="admin-button" class="login-button fw-bold">Administrator</button><br>
+      <button type="submit" name="tea-button" value="tea-button" class="login-button fw-bold">Teacher</button><br>
+      <button type="submit" name="stud-button" value="stud-button" class="login-button fw-bold">Student</button><br>
+      <button type="submit" name="par-button" value="par-button" class="login-button fw-bold">Parent</button>
     </form>
   </div>
 
@@ -64,13 +65,13 @@
       header("Location: admin/adminlogin.php");
     }
     if(isset($_POST["tea-button"])) {
-      header("Location: teacherlogin.php");
+      header("Location: teacher/teacherlogin.php");
     }
     if(isset($_POST["stud-button"])) {
       header("Location: student/studentlogin.php");
     }
     if(isset($_POST["par-button"])) {
-      header("Location: parentlogin.php");
+      header("Location: parent/parentlogin.php");
     }
   ?>
   

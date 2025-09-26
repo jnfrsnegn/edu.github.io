@@ -1,11 +1,9 @@
 
 <?php
 session_start();
-if (!isset($_SESSION['admin'])) {
-    header("Location: adminlogin.php");
-    exit();
-}
+$teacherName = $_SESSION['teacher_name'] ?? '';
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +15,8 @@ if (!isset($_SESSION['admin'])) {
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f5f5dc;
-        }
+      overflow: hidden;
+    }
 
     .sidebar {
       background-color: #0d4b16;
@@ -41,8 +40,7 @@ if (!isset($_SESSION['admin'])) {
       background-color: #fffde7;
       padding: 30px;
       border-radius: 10px;
-      height: auto;
-
+      height: 800px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -63,8 +61,8 @@ if (!isset($_SESSION['admin'])) {
     }
 
     .avatar {
-      width: 65px;
-      height: 65px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
     }
 
@@ -77,7 +75,7 @@ if (!isset($_SESSION['admin'])) {
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 110px;
+      margin-bottom: 120px;
     }
 
     .card:hover {
@@ -110,6 +108,7 @@ if (!isset($_SESSION['admin'])) {
       align-items: center;
       justify-content: center;
     }
+
     .card-title {
       margin-top: 10px;
     }
@@ -125,29 +124,22 @@ if (!isset($_SESSION['admin'])) {
     <div class="row">
       <div class="col-md-3 sidebar">
         <div class="mb-4 d-flex align-items-center">
-           <a href="admindash.php" style="text-decoration: none;"><img src="lnhslogo.png" alt="Admin" class="avatar me-2"></a>
+          <img src="lnhslogo.png" alt="Admin" class="avatar me-2">
           <div>
-            <div style="font-size:25px;">Administrator</div>
-            <small><?= $_SESSION['admin_name'] ?? '' ?></small>
+            <div style="font-size:25px;">Teacher</div>
+            <small><?= $_SESSION['teacher_name'] ?? '' ?></small>
           </div>
         </div>
-        <a href="addstud.php" class="btn btn-outline-light">Student Registration</a>
-                <a href="manageadmin.php" class="btn btn-outline-light active">Manage Informations</a>
-                <a href="docreqs.php" class="btn btn-outline-light">Document Requests</a>
-                <a href="removeenrollee.php" class="btn btn-outline-light">Remove Enrollee</a>
-                <a href="persoinfo.php" class="btn btn-outline-light">Personal Information</a>
-                <a href="viewrep.php" class="btn btn-outline-light">View Reports</a>
-                <a href="passmanage.php" class="btn btn-outline-light">Password Management</a>
-                <a href="regteach.php" class="btn btn-outline-light">Register Teachers</a>
-                <a href="assignteacher.php" class="btn btn-outline-light">Assign Teacher</a>
-                <a href="regpar.php" class="btn btn-outline-light">Register Parents</a>
-                <a href="addsubject.php" class="btn btn-outline-light">Add Subject</a>
-                <a href="managesections.php" class="btn btn-outline-light ">Manage Sections</a>
-                <br><br>
+        <a href="addstudteacher.php" class="btn btn-outline-light ">Student Registration</a>
+        <a href="manageteach.php" class="btn btn-outline-light active">Manage Informations</a>
+        <a href="gradesmanage.php" class="btn btn-outline-light">Grades Management</a>
+        <a href="persoinfoteach.php" class="btn btn-outline-light">Personal Information</a>
+        <a href="passteach.php" class="btn btn-outline-light">Password Management</a>
+        <a href="regparteach.php" class="btn btn-outline-light">Register Parents</a>
+        <br><br>
         <a href="logout.php" class="logout text-decoration-none" onclick="return confirmLogout();">
           <i class="bi bi-box-arrow-left"></i> Logout
         </a>
-
         <script>
           function confirmLogout() {
             return confirm("Are you sure you want to log out?");
@@ -159,20 +151,7 @@ if (!isset($_SESSION['admin'])) {
         <div class="form-section">
           <div class="row justify-content-center text-center w-100">
             <div class="col-md-4 mb-4 d-flex justify-content-center">
-              <a href="teachinfo.php" class="w-100 text-decoration-none">
-                <div class="card shadow">
-                  <div class="card-body">
-                    <div class="card-icon-wrapper">
-                      <img src="avatar.png" alt="Teacher Icon" style="width: 70px;">
-                    </div>
-                    <h5 class="card-title text-white">Teacher Information</h5>
-                  </div>
-                </div>
-              </a>
-            </div>
-
-            <div class="col-md-4 mb-4 d-flex justify-content-center">
-              <a href="studinfo.php" class="w-100 text-decoration-none">
+              <a href="studinfoteach.php" class="w-100 text-decoration-none">
                 <div class="card shadow">
                   <div class="card-body">
                     <div class="card-icon-wrapper">
@@ -183,8 +162,9 @@ if (!isset($_SESSION['admin'])) {
                 </div>
               </a>
             </div>
+
             <div class="col-md-4 mb-4 d-flex justify-content-center">
-              <a href="parentinfo.php" class="w-100 text-decoration-none">
+              <a href="parentinfoteach.php" class="w-100 text-decoration-none">
                 <div class="card shadow">
                   <div class="card-body">
                     <div class="card-icon-wrapper">
@@ -197,8 +177,7 @@ if (!isset($_SESSION['admin'])) {
             </div>
           </div>
         </div>
-      </div>
-
+      </div> 
     </div>
   </div>
 </body>

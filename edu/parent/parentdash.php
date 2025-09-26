@@ -1,12 +1,3 @@
-<?php
-session_start();
-
-if (!isset($_SESSION['student_name'])) {
-    header("Location: studentlogin.php");
-    exit();
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,24 +57,21 @@ if (!isset($_SESSION['student_name'])) {
     <div class="row">
       <div class="col-md-3 sidebar">
         <div class="mb-4 d-flex align-items-center">
-          <img src="lnhslogo.png" alt="Student" class="avatar me-2">
+          <img src="lnhslogo.png" alt="Admin" class="avatar me-2">
           <div>
-            <div style="font-size:25px;">Student</div>
-            <small><?php echo htmlspecialchars($_SESSION['student_name']); ?></small>
+            <div style="font-size:25px;">Parent</div>
+            <small>Janferson Eugenio</small>
           </div>
         </div>
-
-       <a href="viewgrades.php" class="btn btn-outline-light">View Grades</a>
-        <a href="persoinfo.php" class="btn btn-outline-light">Personal Information</a>
-        <a href="reqdocs.php" class="btn btn-outline-light">Request Form</a>
-        <a href="parentreq.php" class="btn btn-outline-light ">Parent Request</a>
-        <a href="passmanage.php" class="btn btn-outline-light">Password Management</a>
+        <a href="search.php" class="btn btn-outline-light">Child's Information</a>
+        <a href="persoinfoparent.php" class="btn btn-outline-light">Personal Information</a>
+        <a href="passman.php" class="btn btn-outline-light">Password Management</a>
         <br><br>
-        <a href="logout.php" class="logout text-decoration-none" onclick="return confirm('Are you sure you want to log out?');">Logout </a>
+        <a href="logout.php" class="logout text-decoration-none" onclick="return confirm('Are you sure you want to log out?');">Logout</a>
       </div>
 
       <div class="col-md-9 p-4">
-      
+        
       </div>
     </div>
   </div>

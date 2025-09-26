@@ -1,42 +1,53 @@
 <?php
 require '../conn.php';
+session_start();
+if (!isset($_SESSION['admin'])) {
+  header("Location: adminlogin.php");
+  exit();
+}
 
 $lrnError = "";
 $successMessage = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $FirstName = $_POST['FirstName'];
-    $MiddleName = $_POST['MiddleName'];
-    $LastName = $_POST['LastName'];
-    $Sex = $_POST['Sex'];
-    $Birthdate = $_POST['Birthdate'];
-    $LRN = $_POST['LRN'];
-    $YearLevel = $_POST['YearLevel'];
-    $Section = $_POST['Section'];
-    $ContactNumber = $_POST['ContactNumber'];
+  $FirstName = $_POST['FirstName'];
+  $MiddleName = $_POST['MiddleName'];
+  $LastName = $_POST['LastName'];
+  $Suffix = $_POST['Suffix'];
+  $Sex = $_POST['Sex'];
+  $Birthdate = $_POST['Birthdate'];
+  $LRN = $_POST['LRN'];
+  $YearLevelID = $_POST['YearLevelID'];
+  $SectionID = $_POST['SectionID'];
+  $ContactNumber = $_POST['ContactNumber'];
+  $EmailAddress = $_POST['EmailAddress'];
+  $Address = $_POST['Address'];
+  $Status = isset($_POST['Status']) ? implode(",", $_POST['Status']) : null;
 
+  $checkQuery = "SELECT * FROM students WHERE LRN = '$LRN'";
+  $checkResult = mysqli_query($conn, $checkQuery);
 
-    $checkQuery = "SELECT * FROM students WHERE LRN = '$LRN'";
-    $checkResult = mysqli_query($conn, $checkQuery);
+  if (mysqli_num_rows($checkResult) > 0) {
+    $lrnError = "This LRN is already registered.";
+  } else {
+    $query = "INSERT INTO students 
+            (FirstName, MiddleName, LastName, Suffix, Sex, Birthdate, LRN, YearLevelID, SectionID, ContactNumber, EmailAddress, Address, Status)
+            VALUES 
+            ('$FirstName', '$MiddleName', '$LastName', '$Suffix', '$Sex', '$Birthdate', '$LRN', '$YearLevelID', '$SectionID', '$ContactNumber','$EmailAddress', '$Address', '$Status')";
 
-    if (mysqli_num_rows($checkResult) > 0) {
-        $lrnError = "This LRN is already registered.";
+    if (mysqli_query($conn, $query)) {
+      $successMessage = "Student added successfully!";
+      $_POST = [];
     } else {
-        $query = "INSERT INTO students (FirstName, MiddleName, LastName, Sex, Birthdate, LRN, YearLevel, Section, ContactNumber)
-                  VALUES ('$FirstName', '$MiddleName', '$LastName', '$Sex', '$Birthdate', '$LRN', '$YearLevel', '$Section', '$ContactNumber')";
-
-        if (mysqli_query($conn, $query)) {
-            $successMessage = "Student added successfully!";
-            $_POST = [];
-        } else {
-            $lrnError = "Database error: " . mysqli_error($conn);
-        }
+      $lrnError = "Database error: " . mysqli_error($conn);
     }
+  }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -46,32 +57,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f5f5dc;
-      overflow: hidden;
+
     }
+
     .sidebar {
       background-color: #0d4b16;
       min-height: 100vh;
       color: white;
       padding: 20px;
     }
+
     .sidebar .btn {
       width: 100%;
       text-align: left;
       margin-bottom: 10px;
     }
+
     .logout {
       color: red;
       font-weight: bold;
     }
+
     .form-section {
       background-color: #fffde7;
       padding: 30px;
       border-radius: 10px;
+      height: auto;
     }
+
     .form-control {
       border-radius: 20px;
       margin-bottom: 15px;
     }
+
     .register-btn {
       background-color: #124820;
       color: white;
@@ -81,9 +99,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       width: 100%;
       max-width: 400px;
     }
+
     .register-btn:hover {
       background-color: #a8aa10ff;
     }
+
     .header {
       background-color: #1b5e20;
       color: white;
@@ -92,24 +112,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       font-size: 24px;
       font-weight: bold;
     }
+
     .avatar {
-      width: 40px;
-      height: 40px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
     }
+
     th {
       background-color: #1b5e20;
       color: white;
     }
-    td, th {
+
+    td,
+    th {
       padding: 8px;
       text-align: center;
     }
+
     table {
       margin-top: 20px;
     }
+
+    .btn-outline-light {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .form-check-label {
+      margin-left: 5px;
+    }
   </style>
 </head>
+
 <body>
 
   <div class="header">Student Information Management System</div>
@@ -118,53 +152,50 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="row flex-column flex-md-row">
       <div class="col-12 col-md-3 sidebar">
         <div class="mb-4 d-flex align-items-center">
-          <img src="lnhslogo.png" alt="Admin" class="avatar me-2">
+          <a href="admindash.php" style="text-decoration: none;"><img src="lnhslogo.png" alt="Admin" class="avatar me-2"></a>
           <div>
             <div style="font-size:25px;">Administrator</div>
-            <small>Janferson Eugenio</small>
+            <small><?= $_SESSION['admin_name'] ?? '' ?></small>
           </div>
         </div>
 
-        <a href="addstud.php" class="btn btn-outline-light">Student Registration</a>
+        <a href="addstud.php" class="btn btn-outline-light active">Student Registration</a>
         <a href="manageadmin.php" class="btn btn-outline-light">Manage Informations</a>
         <a href="docreqs.php" class="btn btn-outline-light">Document Requests</a>
-        <button class="btn btn-outline-light">Remove Enrollee</button>
-        <button class="btn btn-outline-light">Personal Information</button>
-        <button class="btn btn-outline-light">Profile Management</button>
-        <button class="btn btn-outline-light">View Reports</button>
+        <a href="removeenrollee.php" class="btn btn-outline-light">Remove Enrollee</a>
+        <a href="persoinfo.php" class="btn btn-outline-light">Personal Information</a>
+        <a href="viewrep.php" class="btn btn-outline-light">View Reports</a>
+        <a href="passmanage.php" class="btn btn-outline-light">Password Management</a>
+        <a href="regteach.php" class="btn btn-outline-light">Register Teachers</a>
+        <a href="assignteacher.php" class="btn btn-outline-light">Assign Teacher</a>
+        <a href="regpar.php" class="btn btn-outline-light">Register Parents</a>
+        <a href="addsubject.php" class="btn btn-outline-light">Add Subject</a>
+        <a href="managesections.php" class="btn btn-outline-light ">Manage Sections</a>
         <br><br>
-        <a href="logout.php" class="logout text-decoration-none" onclick="return confirmLogout();">
-          <i class="bi bi-box-arrow-left"></i> Logout
-        </a>
-
-        <script>
-          function confirmLogout() {
-            return confirm("Are you sure you want to log out?");
-          }
-        </script>
+        <a href="logout.php" class="logout text-decoration-none" onclick="return confirm('Are you sure you want to log out?');">Logout</a>
       </div>
 
       <div class="col-12 col-md-9 p-4">
         <div class="form-section">
           <?php if ($successMessage): ?>
-              <script>
-                alert("<?= htmlspecialchars($successMessage, ENT_QUOTES, 'UTF-8') ?>");
-              </script>
-            <?php endif; ?>
+            <script>
+              alert("<?= htmlspecialchars($successMessage, ENT_QUOTES, 'UTF-8') ?>");
+            </script>
+          <?php endif; ?>
 
-          <form action="addstud.php" method="post" autocomplete="off">
+          <form method="post" action="addstud.php" autocomplete="off">
             <div class="row">
               <div class="col-12 col-md-4">
-                <input type="text" name="FirstName" class="form-control" placeholder="First Name" required
-                       value="<?= htmlspecialchars($_POST['FirstName'] ?? '') ?>">
+                <input type="text" name="FirstName" class="form-control" placeholder="First Name" required value="<?= htmlspecialchars($_POST['FirstName'] ?? '') ?>">
               </div>
               <div class="col-12 col-md-4">
-                <input type="text" name="MiddleName" class="form-control" placeholder="Middle Name"
-                       value="<?= htmlspecialchars($_POST['MiddleName'] ?? '') ?>">
+                <input type="text" name="MiddleName" class="form-control" placeholder="Middle Name" value="<?= htmlspecialchars($_POST['MiddleName'] ?? '') ?>">
               </div>
               <div class="col-12 col-md-4">
-                <input type="text" name="LastName" class="form-control" placeholder="Last Name" required
-                       value="<?= htmlspecialchars($_POST['LastName'] ?? '') ?>">
+                <input type="text" name="LastName" class="form-control" placeholder="Last Name" required value="<?= htmlspecialchars($_POST['LastName'] ?? '') ?>">
+              </div>
+              <div class="col-12 col-md-4">
+                <input type="text" name="Suffix" class="form-control" placeholder="Suffix (e.g., Jr.)" value="<?= htmlspecialchars($_POST['Suffix'] ?? '') ?>">
               </div>
               <div class="col-12 col-md-4">
                 <select name="Sex" class="form-control" required>
@@ -174,121 +205,145 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </select>
               </div>
               <div class="col-12 col-md-4">
-                <input type="date" name="Birthdate" class="form-control" required
-                       value="<?= htmlspecialchars($_POST['Birthdate'] ?? '') ?>">
+                <input type="date" name="Birthdate" class="form-control" required value="<?= htmlspecialchars($_POST['Birthdate'] ?? '') ?>">
               </div>
               <div class="col-12 col-md-4">
-                <input type="text" name="LRN" maxlength="12" pattern="\d{12}" inputmode="numeric"
-                       class="form-control <?= $lrnError ? 'is-invalid' : '' ?>" placeholder="LRN (12 digit)" required
-                       value="<?= htmlspecialchars($_POST['LRN'] ?? '') ?>">
+                <input type="text" name="LRN" maxlength="12" pattern="\d{12}" inputmode="numeric" class="form-control <?= $lrnError ? 'is-invalid' : '' ?>" placeholder="LRN (12 digit)" required value="<?= htmlspecialchars($_POST['LRN'] ?? '') ?>">
                 <?php if ($lrnError): ?>
                   <div class="invalid-feedback"><?= $lrnError ?></div>
                 <?php endif; ?>
               </div>
               <div class="col-12 col-md-4">
-                <select name="YearLevel" id="YearLevel" class="form-control" required>
-                  <option value="" disabled <?= !isset($_POST['YearLevel']) ? 'selected' : '' ?>>Select Year Level</option>
+                <select name="YearLevelID" id="YearLevelID" class="form-control" required>
+                  <option value="" disabled selected>Select Year Level</option>
                   <?php
-                  for ($i = 7; $i <= 12; $i++) {
-                      $selected = (($_POST['YearLevel'] ?? '') == $i) ? 'selected' : '';
-                      echo "<option value='$i' $selected>Grade $i</option>";
+                  $ylQuery = mysqli_query($conn, "SELECT * FROM yearlevels");
+                  while ($row = mysqli_fetch_assoc($ylQuery)) {
+                    $selected = ($_POST['YearLevelID'] ?? '') == $row['yearlevel_ID'] ? 'selected' : '';
+                    echo "<option value='{$row['yearlevel_ID']}' $selected>{$row['YearName']}</option>";
                   }
                   ?>
                 </select>
               </div>
               <div class="col-12 col-md-4">
-                 <select name="Section" id="Section" class="form-control" required>
-                  <option value="" disabled selected hidden>Select Section</option>
+                <select name="SectionID" id="SectionID" class="form-control" required>
+                  <option value="" disabled selected>Select Section</option>
                 </select>
               </div>
               <div class="col-12 col-md-4">
-                <input type="text" name="ContactNumber" class="form-control" placeholder="Contact Number" required
-                       value="<?= htmlspecialchars($_POST['ContactNumber'] ?? '') ?>">
+                <input type="text" name="ContactNumber" maxlength="11" pattern="\d{11}" inputmode="numeric" class="form-control <?= $lrnError ? 'is-invalid' : '' ?>" placeholder="Contact Number" required value="<?= htmlspecialchars($_POST['ContactNumber'] ?? '') ?>">
               </div>
+              <div class="col-12 col-md-4">
+                <input type="email" name="EmailAddress" class="form-control <?= $lrnError ? 'is-invalid' : '' ?>" placeholder="name@gmail.com"
+                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required value="<?= htmlspecialchars($_POST['EmailAddress'] ?? '') ?>">
+              </div>
+              <div class="col-12 col-md-4">
+                <input type="text" name="Address" class="form-control" placeholder="Address" required value="<?= htmlspecialchars($_POST['Address'] ?? '') ?>">
+              </div>
+
+
+              <div class="col-12 mb-3">
+                <label class="form-label fw-bold">Student Status:</label>
+                <?php
+                $statuses = ["4PS", "1PS", "SNED", "Repeater", "Balik-Aral", "Transferred-In", "Muslim"];
+                foreach ($statuses as $status): ?>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" name="Status[]" value="<?= $status ?>" id="status<?= $status ?>" <?= (in_array($status, $_POST['Status'] ?? [])) ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="status<?= $status ?>"><?= $status ?></label>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+
               <div class="col-12 d-flex justify-content-center">
                 <button type="submit" name="submit" class="btn register-btn mt-2">REGISTER</button>
               </div>
             </div>
           </form>
-        </div>
 
-        <div class="table-responsive mt-4" style="max-height: 400px; overflow-y: auto;">
-          <table class="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>First Name</th>
-                <th>Middle Name</th>
-                <th>Last Name</th>
-                <th>Sex</th>
-                <th>Birthdate</th>
-                <th>LRN</th>
-                <th>Year Level</th>
-                <th>Section</th>
-                <th>Contact Number</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php
-              $sql = "SELECT ID, FirstName, MiddleName, LastName, Sex, Birthdate, LRN, YearLevel, Section, ContactNumber FROM students";
-              $result = $conn->query($sql);
-              if ($result->num_rows > 0) {
+          <div class="table-responsive mt-4" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>FirstName</th>
+                  <th>MiddleName</th>
+                  <th>LastName</th>
+                  <th>Suffix</th>
+                  <th>Sex</th>
+                  <th>Birthdate</th>
+                  <th>LRN</th>
+                  <th>YearLevel</th>
+                  <th>Section</th>
+                  <th>ContactNumber</th>
+                  <th>EmailAddress</th>
+                  <th>Address</th>
+                  <th>Status</th>
+                  <th>IsActive</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php
+                $sql = "SELECT s.*, sec.SectionName, yl.YearName
+              FROM students s
+              LEFT JOIN sections sec ON s.SectionID = sec.section_ID
+              LEFT JOIN yearlevels yl ON s.YearLevelID = yl.yearlevel_ID
+              ORDER BY s.students_ID ASC";
+                $result = $conn->query($sql);
+
+                if ($result->num_rows > 0) {
                   while ($row = $result->fetch_assoc()) {
-                      echo "<tr>
-                              <td>{$row['ID']}</td>
-                              <td>{$row['FirstName']}</td>
-                              <td>{$row['MiddleName']}</td>
-                              <td>{$row['LastName']}</td>
-                              <td>{$row['Sex']}</td>
-                              <td>{$row['Birthdate']}</td>
-                              <td>{$row['LRN']}</td>
-                              <td>{$row['YearLevel']}</td>
-                              <td>{$row['Section']}</td>
-                              <td>{$row['ContactNumber']}</td>
-                            </tr>";
+                    $isActiveText = $row['IsActive'] == 1
+                      ? "<span class='badge bg-success'>Active</span>"
+                      : "<span class='badge bg-danger'>Disabled</span>";
+
+                    echo "<tr>
+                  <td>{$row['students_ID']}</td>
+                  <td>{$row['FirstName']}</td>
+                  <td>{$row['MiddleName']}</td>
+                  <td>{$row['LastName']}</td>
+                  <td>{$row['Suffix']}</td>
+                  <td>{$row['Sex']}</td>
+                  <td>{$row['Birthdate']}</td>
+                  <td>{$row['LRN']}</td>
+                  <td>{$row['YearName']}</td>
+                  <td>{$row['SectionName']}</td>
+                  <td>{$row['ContactNumber']}</td>
+                  <td>{$row['EmailAddress']}</td>
+                  <td>{$row['Address']}</td>
+                  <td>{$row['Status']}</td>
+                  <td>{$isActiveText}</td>
+                </tr>";
                   }
-              } else {
-                  echo "<tr><td colspan='10'>0 results</td></tr>";
-              }
-              ?>
-            </tbody>
-          </table>
+                } else {
+                  echo "<tr><td colspan='15'>No students registered yet.</td></tr>";
+                }
+                ?>
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    const sectionOptions = {
-      jhs: ["Section A", "Section B", "Section C", "SPA"],
-      shs: ["STEM Track", "ABM Track", "HUMSS Track", "Arts & Design Track"]
-    };
-
-    const yearLevel = document.getElementById('YearLevel');
-    const section = document.getElementById('Section');
-
-    yearLevel.addEventListener('change', updateSections);
-
-    function updateSections() {
-      const selected = parseInt(yearLevel.value);
-      const options = selected >= 11 ? sectionOptions.shs : sectionOptions.jhs;
-
-      section.innerHTML = '<option disabled selected hidden>Select Section</option>';
-      options.forEach(opt => {
-        const option = document.createElement('option');
-        option.value = opt;
-        option.text = opt;
-        section.appendChild(option);
-      });
-
-
-      const previous = <?= json_encode($_POST['Section'] ?? '') ?>;
-      if (previous) section.value = previous;
-    }
-
-    if (yearLevel.value) {
-      updateSections();
-    }
+    document.getElementById('YearLevelID').addEventListener('change', function() {
+      const yearLevel = this.value;
+      fetch('getsections.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: 'yearlevel=' + yearLevel
+        })
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('SectionID').innerHTML = data;
+        });
+    });
   </script>
+
 </body>
+
 </html>

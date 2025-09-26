@@ -1,39 +1,33 @@
 <?php
 require '../conn.php';
 session_start();
-if (!isset($_SESSION['admin'])) {
-    header("Location: adminlogin.php");
+
+if (!isset($_SESSION['teacher_id'])) {
+    header("Location: teacherlogin.php");
     exit();
 }
 
 $searchError = '';
-$teacherFound = [];
-$allTeachers = [];
+$parentFound = [];
+$allParents = [];
 
-// Handle search request
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $search = htmlspecialchars($_POST['search']);
+  $search = htmlspecialchars($_POST['search']);
 
-    // Prepared statement
-    $stmt = $conn->prepare("SELECT * FROM teachers WHERE EmployeeID = ?");
-    $stmt->bind_param("s", $search);
-    $stmt->execute();
-    $result = $stmt->get_result();
+  $query = "SELECT * FROM parents WHERE ContactNumber = '$search'";
+  $result = mysqli_query($conn, $query);
 
-    if ($result && mysqli_num_rows($result) > 0) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $teacherFound[] = $row;
-        }
-    } else {
-        $searchError = "Teacher ID not found.";
+  if (mysqli_num_rows($result) > 0) {
+    while($row = mysqli_fetch_assoc($result)){
+      $parentFound[] = $row;
     }
-    $stmt->close();
+  } else {
+    $searchError = "Parent contact not found.";
+  }
+} else {
+  $allQuery = "SELECT * FROM parents";
+  $allParents = mysqli_query($conn, $allQuery);
 }
-
-// Fetch all teachers for default table display
-$allQuery = "SELECT * FROM teachers";
-$allTeachers = mysqli_query($conn, $allQuery);
-
 ?>
 
 <!DOCTYPE html>
@@ -84,6 +78,21 @@ $allTeachers = mysqli_query($conn, $allQuery);
     .search-btn:hover {
       background-color: #a8aa10ff;
     }
+    .edit-btn {
+      background-color: #124820;
+      color: white;
+      border-radius: 25px;
+      padding: 5px 15px;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+      font-size: 14px;
+    }
+    .edit-btn:hover {
+      background-color: #a8aa10ff;
+      color: black;
+    }
     .header {
       background-color: #1b5e20;
       color: white;
@@ -109,18 +118,6 @@ $allTeachers = mysqli_query($conn, $allQuery);
       max-height: 450px;
       overflow-y: auto;
     }
-    .edit-btn {
-      background-color: #124820;
-      color: white;
-      border-radius: 25px;
-      padding: 6px 20px;
-      font-weight: bold;
-      text-decoration: none;
-    }
-    .edit-btn:hover {
-      background-color: #a8aa10ff;
-      color: black;
-    }
     h4.text-center{
       background-color: #0d4b16;
       border-radius: 25px;
@@ -140,40 +137,35 @@ $allTeachers = mysqli_query($conn, $allQuery);
 
 <div class="container-fluid">
   <div class="row">
-    <div class="col-md-3 sidebar">
-      <div class="mb-4 d-flex align-items-center">
-        <a href="admindash.php" style="text-decoration: none;"><img src="lnhslogo.png" alt="Admin" class="avatar me-2"></a>
-        <div>
-          <div style="font-size:25px;">Administrator</div>
-          <small><?= $_SESSION['admin_name'] ?? '' ?></small>
-        </div>
-      </div>
 
-       <a href="addstud.php" class="btn btn-outline-light">Student Registration</a>
-                <a href="manageadmin.php" class="btn btn-outline-light">Manage Informations</a>
-                <a href="docreqs.php" class="btn btn-outline-light">Document Requests</a>
-                <a href="removeenrollee.php" class="btn btn-outline-light">Remove Enrollee</a>
-                <a href="persoinfo.php" class="btn btn-outline-light">Personal Information</a>
-                <a href="viewrep.php" class="btn btn-outline-light">View Reports</a>
-                <a href="passmanage.php" class="btn btn-outline-light">Password Management</a>
-                <a href="regteach.php" class="btn btn-outline-light">Register Teachers</a>
-                <a href="assignteacher.php" class="btn btn-outline-light">Assign Teacher</a>
-                <a href="regpar.php" class="btn btn-outline-light">Register Parents</a>
-                <a href="addsubject.php" class="btn btn-outline-light">Add Subject</a>
-                <a href="managesections.php" class="btn btn-outline-light">Manage Sections</a>
-                <br><br>
-      <a href="logout.php" class="logout text-decoration-none" onclick="return confirm('Are you sure you want to log out?');">
-        Logout
-      </a>
+    <div class="col-md-3 sidebar">
+        <div class="mb-4 d-flex align-items-center">
+          <a href="teacherdash.php" style="text-decoration: none;">
+            <img src="lnhslogo.png" alt="Teacher" class="avatar me-2">
+          </a>
+          <div>
+            <div style="font-size:25px;">Teacher</div>
+            <small><?= htmlspecialchars($_SESSION['teacher_name'] ?? '') ?></small>
+          </div>
+        </div>
+
+        <a href="addstudteacher.php" class="btn btn-outline-light ">Student Registration</a>
+        <a href="manageteach.php" class="btn btn-outline-light">Manage Informations</a>
+        <a href="gradesmanage.php" class="btn btn-outline-light">Grades Management</a>
+        <a href="persoinfoteach.php" class="btn btn-outline-light">Personal Information</a>
+        <a href="passteach.php" class="btn btn-outline-light">Password Management</a>
+        <a href="regparteach.php" class="btn btn-outline-light">Register Parents</a>
+        <br><br>
+      <a href="../logout.php" class="logout text-decoration-none" onclick="return confirm('Are you sure you want to log out?');">Logout</a>
     </div>
 
     <div class="col-md-9 p-4">
-      <div class="form-section">
-        <h4 class="mb-4 text-center">Teacher Information</h4>
+      <div class="form-section" style="height:auto;">
+        <h4 class="mb-4 text-center">Parent Information</h4>
 
         <form method="POST" action="#" class="d-flex flex-column align-items-center">
           <div class="col-12 col-md-6">
-            <input type="text" name="search" class="form-control text-center" placeholder="Enter Teacher ID" required>
+            <input type="text" name="search" maxlength="11" pattern="\d{11}" class="form-control text-center" placeholder="Enter Contact Number" required>
           </div>
           <div class="mt-3">
             <button type="submit" class="btn search-btn mt-2">SEARCH</button>
@@ -185,7 +177,7 @@ $allTeachers = mysqli_query($conn, $allQuery);
             <?= $searchError ?>
           </div>
 
-        <?php elseif (!empty($teacherFound)): ?>
+        <?php elseif (!empty($parentFound)): ?>
           <div class="table-responsive mt-5">
             <table class="table table-bordered table-striped">
               <thead>
@@ -194,32 +186,26 @@ $allTeachers = mysqli_query($conn, $allQuery);
                   <th>First Name</th>
                   <th>Middle Name</th>
                   <th>Last Name</th>
-                  <th>Suffix</th>
                   <th>Sex</th>
                   <th>Birthdate</th>
-                  <th>Employee ID</th>
-                  <th>Position</th>
-                  <th>Contact Number</th>
+                  <th>Contact</th>
                   <th>Address</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                <?php foreach ($teacherFound as $row): ?>
+                <?php foreach ($parentFound as $row): ?>
                   <tr>
-                    <td><?= htmlspecialchars($row['teachers_ID']) ?></td>
+                    <td><?= htmlspecialchars($row['parents_ID']) ?></td>
                     <td><?= htmlspecialchars($row['FirstName']) ?></td>
                     <td><?= htmlspecialchars($row['MiddleName']) ?></td>
                     <td><?= htmlspecialchars($row['LastName']) ?></td>
-                    <td><?= htmlspecialchars($row['Suffix']) ?></td>
                     <td><?= htmlspecialchars($row['Sex']) ?></td>
                     <td><?= htmlspecialchars($row['Birthdate']) ?></td>
-                    <td><?= htmlspecialchars($row['EmployeeID']) ?></td>
-                    <td><?= htmlspecialchars($row['Position']) ?></td>
                     <td><?= htmlspecialchars($row['ContactNumber']) ?></td>
                     <td><?= htmlspecialchars($row['Address']) ?></td>
                     <td>
-                      <a href="editteacher.php?tid=<?= urlencode($row['teachers_ID']) ?>" class="edit-btn">EDIT</a>
+                      <a href="editparteach.php?pid=<?= urlencode($row['parents_ID']) ?>" class="edit-btn">EDIT</a>
                     </td>
                   </tr>
                 <?php endforeach; ?>
@@ -227,7 +213,7 @@ $allTeachers = mysqli_query($conn, $allQuery);
             </table>
           </div>
 
-        <?php elseif ($allTeachers && mysqli_num_rows($allTeachers) > 0): ?>
+        <?php elseif ($allParents && mysqli_num_rows($allParents) > 0): ?>
           <div class="table-responsive mt-5">
             <table class="table table-bordered table-striped">
               <thead>
@@ -236,32 +222,26 @@ $allTeachers = mysqli_query($conn, $allQuery);
                   <th>First Name</th>
                   <th>Middle Name</th>
                   <th>Last Name</th>
-                  <th>Suffix</th>
                   <th>Sex</th>
                   <th>Birthdate</th>
-                  <th>Employee ID</th>
-                  <th>Position</th>
-                  <th>Contact Number</th>
+                  <th>Contact</th>
                   <th>Address</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                <?php while ($row = mysqli_fetch_assoc($allTeachers)): ?>
+                <?php while ($row = mysqli_fetch_assoc($allParents)): ?>
                   <tr>
-                    <td><?= htmlspecialchars($row['teachers_ID']) ?></td>
+                    <td><?= htmlspecialchars($row['parents_ID']) ?></td>
                     <td><?= htmlspecialchars($row['FirstName']) ?></td>
                     <td><?= htmlspecialchars($row['MiddleName']) ?></td>
                     <td><?= htmlspecialchars($row['LastName']) ?></td>
-                    <td><?= htmlspecialchars($row['Suffix']) ?></td>
                     <td><?= htmlspecialchars($row['Sex']) ?></td>
                     <td><?= htmlspecialchars($row['Birthdate']) ?></td>
-                    <td><?= htmlspecialchars($row['EmployeeID']) ?></td>
-                    <td><?= htmlspecialchars($row['Position']) ?></td>
                     <td><?= htmlspecialchars($row['ContactNumber']) ?></td>
                     <td><?= htmlspecialchars($row['Address']) ?></td>
                     <td>
-                      <a href="editteacher.php?tid=<?= urlencode($row['teachers_ID']) ?>" class="edit-btn btn-sm">EDIT</a>
+                      <a href="editparteach.php?pid=<?= urlencode($row['parents_ID']) ?>" class="edit-btn">EDIT</a>
                     </td>
                   </tr>
                 <?php endwhile; ?>
@@ -269,6 +249,7 @@ $allTeachers = mysqli_query($conn, $allQuery);
             </table>
           </div>
         <?php endif; ?>
+
       </div>
     </div>
   </div>

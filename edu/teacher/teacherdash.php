@@ -1,3 +1,7 @@
+<?php
+session_start();
+$teacherName = $_SESSION['teacher_name'] ?? '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,6 +13,7 @@
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f5f5dc;
+      overflow: hidden;
     }
 
     .sidebar {
@@ -39,9 +44,12 @@
     }
 
     .avatar {
-      width: 40px;
-      height: 40px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
+    }
+    .btn-outline-light{
+      font-family: Arial, Helvetica, sans-serif;
     }
   </style>
 </head>
@@ -55,19 +63,19 @@
         <div class="mb-4 d-flex align-items-center">
           <img src="lnhslogo.png" alt="Admin" class="avatar me-2">
           <div>
-            <div style="font-size:14px;">Teacher</div>
-            <small>Janferson Eugenio</small>
+            <div style="font-size:25px;">Teacher</div>
+            <small><?= $_SESSION['teacher_name'] ?? '' ?></small>
           </div>
         </div>
 
-           <a href="addstud.php" class="btn btn-outline-light">Student Registration</a>
-        <button class="btn btn-outline-light">Manage Informations</button>
-        <button class="btn btn-outline-light">Grades Management</button>
-        <button class="btn btn-outline-light">Personal Information</button>
-        <button class="btn btn-outline-light">Password Management</button>
-        <button class="btn btn-outline-light">Register Parents</button>
+           <a href="addstudteacher.php" class="btn btn-outline-light ">Student Registration</a>
+        <a href="manageteach.php" class="btn btn-outline-light">Manage Informations</a>
+        <a href="gradesmanage.php" class="btn btn-outline-light">Grades Management</a>
+        <a href="persoinfoteach.php" class="btn btn-outline-light">Personal Information</a>
+        <a href="passteach.php" class="btn btn-outline-light">Password Management</a>
+        <a href="regparteach.php" class="btn btn-outline-light">Register Parents</a>
         <br><br>
-        <a href="#" class="logout text-decoration-none"><i class="bi bi-box-arrow-left"></i> Logout</a>
+        <a href="logout.php" class="logout text-decoration-none" onclick="return confirm('Are you sure you want to log out?');">Logout</a>
       </div>
 
       <div class="col-md-9 p-4">

@@ -3,22 +3,52 @@ require '../conn.php';
 session_start();
 
 if (isset($_POST["login"])) {
-    $inputLRN = $_POST["lrn"];
-    $inputPassword = $_POST["password"];
-    $query = "SELECT * FROM students WHERE LRN = '$inputLRN'";
-    $result = mysqli_query($conn, $query);
+    $inputLRN = trim($_POST["lrn"]);
+    $inputPassword = trim($_POST["password"]);
 
-    if (mysqli_num_rows($result) == 1) {
-        $student = mysqli_fetch_assoc($result);
-        $expectedPassword = substr($student["LRN"], -4);
+    $stmt = $conn->prepare("SELECT * FROM students WHERE LRN = ?");
+    $stmt->bind_param("s", $inputLRN);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-        if ($inputPassword === $expectedPassword) {
-            $_SESSION["student"] = $student["LRN"];
-            $_SESSION["student_name"] = $student["FirstName"] . ' ' . $student["LastName"];
-            header("Location: studentdash.php");
-            exit();
+    if ($result && $result->num_rows === 1) {
+        $students = $result->fetch_assoc();
+
+        if ($students['IsActive'] == 0) {
+            $error = "Your account has been disabled. Please contact the administrator.";
         } else {
-            $error = "Incorrect password.";
+            $stored_password = $students["Password"];
+
+            if (empty($stored_password)) {
+                $default_password = substr($students["LRN"], -4);
+
+                if ($inputPassword === $default_password) {
+                    $hashed = password_hash($inputPassword, PASSWORD_DEFAULT);
+                    $update = $conn->prepare("UPDATE students SET Password = ? WHERE students_ID = ?");
+                    $update->bind_param("si", $hashed, $students["students_ID"]);
+                    $update->execute();
+
+                    $_SESSION["students_ID"] = $students["students_ID"];
+                    $_SESSION["students"] = $students["LRN"];
+                    $_SESSION["student_name"] = $students["FirstName"] . ' ' . $students["LastName"];
+
+                    header("Location: studentdash.php");
+                    exit();
+                } else {
+                    $error = "Incorrect default password.";
+                }
+            } else {
+                if (password_verify($inputPassword, $stored_password)) {
+                    $_SESSION["students_ID"] = $students["students_ID"];
+                    $_SESSION["students"] = $students["LRN"];
+                    $_SESSION["student_name"] = $students["FirstName"] . ' ' . $students["LastName"];
+
+                    header("Location: studentdash.php");
+                    exit();
+                } else {
+                    $error = "Incorrect password.";
+                }
+            }
         }
     } else {
         $error = "LRN not found.";
@@ -89,7 +119,7 @@ if (isset($_POST["login"])) {
   <div class="header">Student Information Management System</div>
 
   <div class="container">
-    <img src="lnhslogo.png" alt="LNHS Logo" class="school-logo"><br>
+    <img src="../lnhs.png" alt="LNHS Logo" class="school-logo"><br>
     <div class="login-title">Student Login</div>
 
     <div class="login-card">
@@ -98,7 +128,12 @@ if (isset($_POST["login"])) {
         <input type="text" name="lrn" required placeholder="Enter ID" class="form-control">
 
         <div class="text-start mb-1 fw-bold">Password</div>
-        <input type="password" name="password" required placeholder="Enter Password" class="form-control">
+        <input type="password" id="password" name="password" required placeholder="Enter Password" class="form-control">
+
+        <div class="form-check mt-2 mb-3 text-start">
+          <input class="form-check-input" type="checkbox" id="showPassword">
+          <label class="form-check-label" for="showPassword">Show Password</label>
+        </div>
 
         <input type="submit" name="login" value="LOGIN" class="btn btn-login">
       </form>
@@ -108,5 +143,14 @@ if (isset($_POST["login"])) {
       <?php endif; ?>
     </div>
   </div>
+
+  <script>
+    const showPassword = document.querySelector("#showPassword");
+    const passwordInput = document.querySelector("#password");
+
+    showPassword.addEventListener("change", function(){
+      passwordInput.type = this.checked ? "text" : "password";
+    });
+  </script>
 </body>
 </html>
