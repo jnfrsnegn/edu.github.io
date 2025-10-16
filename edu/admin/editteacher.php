@@ -1,0 +1,514 @@
+<?php
+require '../conn.php';
+session_start();
+if (!isset($_SESSION['admin'])) {
+  header("Location: adminlogin.php");
+  exit();
+}
+$teacherID = $_GET['tid'] ?? null;
+$teacher = null;
+$error = '';
+
+if (!$teacherID) {
+  header("Location: teachinfo.php");
+  exit;
+}
+
+$query = "SELECT * FROM teachers WHERE teachers_ID = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $teacherID);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows == 1) {
+  $teacher = $result->fetch_assoc();
+} else {
+  $error = "Teacher not found.";
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $FirstName = ucwords($_POST['FirstName']);
+  $MiddleName = ucwords($_POST['MiddleName']);
+  $LastName = ucwords($_POST['LastName']);
+  $Suffix = $_POST['Suffix'];
+  $Sex = $_POST['Sex'];
+  $Birthdate = $_POST['Birthdate'];
+  $EmployeeID = $_POST['EmployeeID'];
+  $Position = $_POST['Position'];
+  $ContactNumber = $_POST['ContactNumber'];
+  $EmailAddress = $_POST['ContactNumber'];
+  $Address = ucwords($_POST['Address']);
+
+  $update = "UPDATE teachers SET 
+        FirstName = ?, MiddleName = ?, LastName = ?, Suffix = ?, 
+        Sex = ?, Birthdate = ?, EmployeeID = ?, Position = ?, 
+        ContactNumber = ?, Address = ? 
+        WHERE teachers_ID = ?";
+  $stmt = $conn->prepare($update);
+  $stmt->bind_param(
+    "ssssssssssi",
+    $FirstName,
+    $MiddleName,
+    $LastName,
+    $Suffix,
+    $Sex,
+    $Birthdate,
+    $EmployeeID,
+    $Position,
+    $ContactNumber,
+    $Address,
+    $teacherID
+  );
+
+  if ($stmt->execute()) {
+    header("Location: teachinfo.php");
+    exit();
+  } else {
+    $error = "Update failed: " . $stmt->error;
+  }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>SIMS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5dc;
+      overflow-x: hidden;
+    }
+
+    .header {
+      background-color: #1b5e20;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .sidebar {
+      background-color: #0d4b16;
+      height: 100vh;
+      color: white;
+      padding: 15px;
+    }
+
+    .sidebar .btn {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 10px;
+      position: relative;
+      font-size: 15px;
+    }
+
+    .sidebar .btn i.bi-chevron-right {
+      transition: transform 0.3s ease;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .sidebar .btn[aria-expanded="true"] i.bi-chevron-right {
+      transform: translateY(-50%) rotate(90deg);
+    }
+
+    .sidebar .sub-btn {
+      width: calc(100% - 15px);
+      margin-left: 15px;
+      margin-bottom: 5px;
+    }
+
+    .sidebar .sub-btn.active {
+      background-color: #1b5e20;
+      border-color: #1b5e20;
+    }
+
+    .logout {
+      color: red;
+      font-weight: bold;
+    }
+
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+    }
+
+    .form-section {
+      background-color: #fffde7;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control {
+      border-radius: 20px;
+      margin-bottom: 15px;
+    }
+
+    .edit-btn {
+      background-color: #124820;
+      color: white;
+      border-radius: 25px;
+      padding: 10px 30px;
+      font-weight: bold;
+    }
+
+    .edit-btn:hover {
+      background-color: #a8aa10ff;
+      color: black;
+    }
+
+    h4.text-center {
+      background-color: #0d4b16;
+      border-radius: 25px;
+      padding: 10px;
+      width: 50%;
+      color: #ffff;
+      margin: 0 auto;
+    }
+
+    .btn-outline-light {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .btn-icon {
+      margin-right: 8px;
+      width: 20px; 
+    }
+
+    @media (max-width: 992px) {
+      .sidebar {
+        height: auto;
+        padding: 10px;
+      }
+
+      h4.text-center {
+        width: 80%;
+        font-size: 1.1rem;
+      }
+
+      .form-section {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .row {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        position: relative;
+        height: auto;
+        width: 100%;
+        order: -1;
+      }
+
+      .avatar {
+        width: 50px;
+        height: 50px;
+      }
+
+      .header {
+        font-size: 18px;
+      }
+
+      .form-section {
+        padding: 15px;
+      }
+
+      h4.text-center {
+        width: 90%;
+        padding: 8px;
+        font-size: 1rem;
+      }
+
+      .form-row .col-md-4 {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      .form-control {
+        font-size: 16px; 
+        padding: 12px 15px; 
+      }
+
+      .edit-btn {
+        width: 100%;
+        padding: 12px 20px; 
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+
+      .btn-secondary {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header {
+        font-size: 16px;
+        padding: 10px;
+      }
+
+      .sidebar .btn {
+        font-size: 14px;
+      }
+
+      .form-section {
+        padding: 10px;
+      }
+
+      h4.text-center {
+        width: 100%;
+        font-size: 0.9rem;
+        padding: 6px;
+      }
+
+      .form-control {
+        font-size: 16px;
+        margin-bottom: 12px;
+        padding: 12px 12px;
+      }
+
+      .edit-btn,
+      .btn-secondary {
+        font-size: 16px;
+        padding: 12px 15px;
+      }
+    }
+
+    @media (max-width: 320px) {
+      .header {
+        font-size: 15px;
+        padding: 8px;
+      }
+
+      .sidebar {
+        padding: 8px;
+      }
+
+      .sidebar .btn {
+        font-size: 13px;
+      }
+
+      .form-section {
+        padding: 8px;
+      }
+
+      h4.text-center {
+        font-size: 0.85rem;
+        padding: 5px;
+      }
+
+      .form-control {
+        font-size: 16px;
+        padding: 10px 10px;
+        margin-bottom: 10px;
+      }
+
+      .edit-btn,
+      .btn-secondary {
+        font-size: 15px;
+        padding: 10px 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">Student Information Management System</div>
+
+  <div class="container-fluid">
+    <div class="row flex-column flex-md-row">
+      <div class="col-md-3 sidebar">
+        <div class="mb-3 d-flex align-items-center">
+          <a href="admindash.php" style="text-decoration: none;"><img src="lnhslogo.png" alt="Admin" class="avatar me-2"></a>
+          <div>
+            <div style="font-size:20px;">Administrator</div><small><?= htmlspecialchars($_SESSION['admin_name'] ?? '') ?></small>
+          </div>
+        </div>
+        <a href="#collapseStudent" class="btn btn-outline-light" data-bs-toggle="collapse" aria-expanded="false" aria-controls="collapseStudent">
+          <i class="bi bi-people-fill btn-icon"></i>Student Management
+          <i class="bi bi-chevron-right"></i>
+        </a>
+        <div class="collapse" id="collapseStudent">
+          <a href="addstud.php" class="btn btn-outline-light sub-btn">
+            <i class="bi bi-person-plus btn-icon"></i>Add Student
+          </a>
+          <a href="docreqs.php" class="btn btn-outline-light sub-btn">
+            <i class="bi bi-file-earmark-text btn-icon"></i>Document Requests
+          </a>
+          <a href="removeenrollee.php" class="btn btn-outline-light sub-btn">
+            <i class="bi bi-person-x btn-icon"></i>Student Status
+          </a>
+        </div>
+
+        <a href="#collapseInfo" class="btn btn-outline-light" data-bs-toggle="collapse" aria-expanded="true" aria-controls="collapseInfo">
+          <i class="bi bi-info-circle-fill btn-icon"></i>Manage Informations
+          <i class="bi bi-chevron-right"></i>
+        </a>
+        <div class="collapse show" id="collapseInfo">
+          <a href="studinfo.php" class="btn btn-outline-light sub-btn">
+            <i class="bi bi-people btn-icon"></i>Student Information
+          </a>
+          <a href="teacherinfo.php" class="btn btn-outline-light sub-btn active">
+            <i class="bi bi-person-badge btn-icon"></i>Teacher Information
+          </a>
+          <a href="persoinfo.php" class="btn btn-outline-light sub-btn">   
+            <i class="bi bi-person btn-icon"></i>Personal Information
+          </a>
+          
+          <a href="passmanage.php" class="btn btn-outline-light sub-btn">
+            <i class="bi bi-lock btn-icon"></i>Password Management
+          </a>
+        </div>
+
+        <a href="#collapseTeacher" class="btn btn-outline-light" data-bs-toggle="collapse" aria-expanded="false" aria-controls="collapseTeacher">
+          <i class="bi bi-person-badge-fill btn-icon"></i>Teacher Management
+          <i class="bi bi-chevron-right"></i>
+        </a>
+        <div class="collapse" id="collapseTeacher">
+          <a href="regteach.php" class="btn btn-outline-light sub-btn">
+            <i class="bi bi-person-plus btn-icon"></i>Register Teachers
+          </a>
+          <a href="assignteacher.php" class="btn btn-outline-light sub-btn">
+            <i class="bi bi-arrow-right-circle btn-icon"></i>Assign Teacher
+          </a>
+        </div>
+
+        <a href="#collapseAcademic" class="btn btn-outline-light" data-bs-toggle="collapse" aria-expanded="false" aria-controls="collapseAcademic">
+          <i class="bi bi-journal-bookmark-fill btn-icon"></i>Subjects & Sections
+          <i class="bi bi-chevron-right"></i>
+        </a>
+        <div class="collapse" id="collapseAcademic">
+          <a href="addsubject.php" class="btn btn-outline-light sub-btn">
+            <i class="bi bi-journal-plus btn-icon"></i>Add Subject
+          </a>
+          <a href="managesections.php" class="btn btn-outline-light sub-btn">
+            <i class="bi bi-gear btn-icon"></i>Manage Sections
+          </a>
+        </div>
+        <a href="viewrep.php" class="btn btn-outline-light">
+          <i class="bi bi-bar-chart-fill btn-icon"></i>View Reports
+        </a>
+
+        <br><br>
+        <a href="#" class="logout text-decoration-none" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+        </a>
+      </div>
+
+      <div class="col-md-9 p-3">
+        <?php if ($error): ?>
+          <div class="alert alert-danger text-center"><?= htmlspecialchars($error) ?></div>
+        <?php elseif ($teacher): ?>
+          <div class="form-section">
+            <h4 class="text-center mb-4">Edit Teacher Details</h4>
+
+            <form method="POST">
+              <div class="row form-row">
+                <div class="col-md-4"><input type="text" name="FirstName" class="form-control" placeholder="First Name" required value="<?= htmlspecialchars($teacher['FirstName']) ?>"></div>
+                <div class="col-md-4"><input type="text" name="MiddleName" class="form-control" placeholder="Middle Name" value="<?= htmlspecialchars($teacher['MiddleName']) ?>"></div>
+                <div class="col-md-4"><input type="text" name="LastName" class="form-control" placeholder="Last Name" required value="<?= htmlspecialchars($teacher['LastName']) ?>"></div>
+                <div class="col-md-4"><input type="text" name="Suffix" class="form-control" placeholder="Suffix" value="<?= htmlspecialchars($teacher['Suffix']) ?>"></div>
+                <div class="col-md-4">
+                  <select name="Sex" class="form-control" required>
+                    <option value="Male" <?= $teacher['Sex'] == 'Male' ? 'selected' : '' ?>>Male</option>
+                    <option value="Female" <?= $teacher['Sex'] == 'Female' ? 'selected' : '' ?>>Female</option>
+                  </select>
+                </div>
+                <div class="col-md-4"><input type="date" name="Birthdate" class="form-control" required value="<?= htmlspecialchars($teacher['Birthdate']) ?>"></div>
+                <div class="col-md-4"><input type="text" name="EmployeeID" class="form-control" required value="<?= htmlspecialchars($teacher['EmployeeID']) ?>" placeholder="Employee ID"></div>
+
+     
+                <div class="col-md-4">
+                  <select name="Position" class="form-control" required>
+                    <option value="" disabled>Select Position</option>
+                    <option value="SP1" <?= $teacher['Position'] == 'SP1' ? 'selected' : '' ?>>SP1</option>
+                    <option value="SP2" <?= $teacher['Position'] == 'SP2' ? 'selected' : '' ?>>SP2</option>
+                    <option value="SP3" <?= $teacher['Position'] == 'SP3' ? 'selected' : '' ?>>SP3</option>
+                    <option value="MT1" <?= $teacher['Position'] == 'MT1' ? 'selected' : '' ?>>MT1</option>
+                    <option value="MT2" <?= $teacher['Position'] == 'MT2' ? 'selected' : '' ?>>MT2</option>
+                    <option value="MT3" <?= $teacher['Position'] == 'MT3' ? 'selected' : '' ?>>MT3</option>
+                    <option value="MT4" <?= $teacher['Position'] == 'MT4' ? 'selected' : '' ?>>MT4</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4"><input type="text" name="ContactNumber" class="form-control" maxlength="11" pattern="\d{11}" required value="<?= htmlspecialchars($teacher['ContactNumber']) ?>" placeholder="Contact Number"></div>
+                <div class="col-md-4"><input type="email" name="EmailAddress" class="form-control" required value="<?= htmlspecialchars($student['EmailAddress']) ?>"></div>
+                <div class="col-md-4"></div>
+                <div class="col-md-4"><input type="text" name="Address" class="form-control" placeholder="Address" required value="<?= htmlspecialchars($teacher['Address']) ?>"></div>
+                <div class="col-12 text-center mt-4">
+                  <button type="submit" class="btn edit-btn">SAVE CHANGES</button>
+                  <a href="teachinfo.php" class="btn btn-secondary ms-2">CANCEL</a>
+                </div>
+              </div>
+            </form>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.form-section form');
+    form.addEventListener('submit', function(e) {
+      e.preventDefault(); 
+
+      Swal.fire({
+        title: 'Save Changes?',
+        text: "Are you sure you want to update this teacher's information?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#124820',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, save changes.',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          form.submit(); 
+        }
+      });
+    });
+  });
+        document.getElementById("logoutBtn").addEventListener("click", function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You will be logged out of the system.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#1b5e20",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, log out"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "logout.php";
+                }
+            });
+        });
+   
+</script>
+
+</body>
+
+</html>
